@@ -2,6 +2,7 @@ import json
 from kafka import KafkaConsumer
 from article_page import ArticlePage  # Import the ArticlePage class
 from ganesh_translator import GaneshTranslator
+from soup import clean
 
 # Kafka Consumer
 def consume_messages():
@@ -30,9 +31,9 @@ def consume_messages():
         # Process the ArticlePage object
         print(article.to_content())
 
-        print(translator.translate(article.title))
+        print(translator.translate(clean(article.title)))
         for parag in article.paragraphs:
-            print(translator.translate(parag))
+            print(translator.translate(clean(parag)))
 
 
 

@@ -3,7 +3,8 @@ from kafka import KafkaConsumer
 from article_page import ArticlePage  # Import the ArticlePage class
 from ganesh_translator import GaneshTranslator
 from soup import clean
-
+from summary import MBart50Summarizer
+from nltk.tokenize import sent_tokenize
 # Kafka Consumer
 def consume_messages():
     # Create Kafka consumer
@@ -16,6 +17,7 @@ def consume_messages():
     )
 
     translator = GaneshTranslator('en_XX','he_IL') 
+    summarizer = MBart50Summarizer()
     
     print("Consuming messages...")
 
@@ -33,8 +35,28 @@ def consume_messages():
 
         print(translator.translate(clean(article.title)))
         for parag in article.paragraphs:
-            print(translator.translate(clean(parag)))
+            cleaned_txt = translator.translate(clean(parag))
+            sentences = regroup_sentences(cleaned_txt, 1)
+            par_summary = ""
+            for group in sentences:
+                par_summary += summarizer.summarize(group, source_lang="he_IL", max_length=60, min_length=30)
+            print("paragraph:\n")
+            print(cleaned_txt)
+            print("summary:\n")
+            print(par_summary)
+               
 
+def regroup_sentences(text, group_size=2):
+    # Split text into individual sentences
+    sentences = sent_tokenize(text)
+    
+    # Group sentences into chunks of the specified size
+    grouped_sentences = [
+        " ".join(sentences[i:i + group_size])
+        for i in range(0, len(sentences), group_size)
+    ]
+    
+    return grouped_sentences
 
 
 if __name__ == '__main__':
